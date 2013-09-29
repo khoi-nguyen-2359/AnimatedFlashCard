@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="card_colors_01">#aaffd619</color>
+    <color name="card_colors_02">#aaff9f19</color>
+    <color name="card_colors_03">#aafd6919</color>
+    <color name="card_colors_04">#aaeb3119</color>
+    <color name="card_colors_05">#aa895bd1</color>
+    <color name="card_colors_06">#aa1962dd</color>
+    <color name="card_colors_07">#aa25adbb</color>
+    <color name="card_colors_08">#aac9d419</color>
+</resources>

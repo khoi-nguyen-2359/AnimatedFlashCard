@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">AnimatedFlashCard</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="hello_world">Hello world!</string>
+
+</resources>

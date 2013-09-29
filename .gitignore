@@ -1,0 +1,7 @@
+/obj/
+/.settings/
+/bin/
+/gen/
+local.properties
+project.properties
+/assets/
