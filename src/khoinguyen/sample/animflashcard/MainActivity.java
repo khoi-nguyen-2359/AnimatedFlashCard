@@ -1,21 +1,15 @@
-package com.example.animatedflashcard;
+package khoinguyen.sample.animflashcard;
 
 import java.util.ArrayList;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Display;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
-import android.widget.FrameLayout;
 
 public class MainActivity extends Activity implements CardView.CardFlyOutListener {
 	public static final int MAX_CARD = 25;

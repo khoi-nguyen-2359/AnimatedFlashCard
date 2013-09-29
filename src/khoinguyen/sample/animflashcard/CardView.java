@@ -1,9 +1,7 @@
-package com.example.animatedflashcard;
+package khoinguyen.sample.animflashcard;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.util.AttributeSet;
@@ -12,8 +10,6 @@ import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -49,9 +45,13 @@ public class CardView extends FrameLayout {
 		 */
 		@Override
 		public void onAnimationEnd(Animator animation) {
-			if (mFlyOutAnimState == STATE_FLY_OUT_END				// 2 animations (fly out X and Y) can go here, just handle once 
-					|| mFlyOutAnimState == STATE_FLY_OUT_CANCEL		// do not handle for canceled intentionally
-					)
+			if (mFlyOutAnimState == STATE_FLY_OUT_END // 2 animations (fly out X
+														// and Y) can go here,
+														// just handle once
+					|| mFlyOutAnimState == STATE_FLY_OUT_CANCEL // do not handle
+																// for canceled
+																// intentionally
+			)
 				return;
 			mFlyOutAnimState = STATE_FLY_OUT_END;
 
@@ -60,7 +60,7 @@ public class CardView extends FrameLayout {
 			if (mOnFlyOutListener != null)
 				mOnFlyOutListener.onCardFlyOutEnd(CardView.this);
 
-			flyInParentCenter();
+			flyIn();
 		}
 
 		@Override
@@ -86,7 +86,7 @@ public class CardView extends FrameLayout {
 			velocityX = velocity[0];
 			velocityY = velocity[1];
 
-			flyOutOfParent(velocityX, velocityY);
+			flyOut(velocityX, velocityY);
 
 			if (mOnFlyOutListener != null)
 				mOnFlyOutListener.onCardFlyOutStart(CardView.this);
@@ -110,33 +110,41 @@ public class CardView extends FrameLayout {
 
 	private int mFlyOutAnimState = STATE_FLY_OUT_UNINIT;
 
-	private ObjectAnimator mFlyOutXAnim;
-	private ObjectAnimator mFlyOutYAnim;
-	private AnimatorSet mFlyOutAnim;
-
-	private ObjectAnimator mFlyInXAnim;
-	private ObjectAnimator mFlyInYAnim;
-	private AnimatorSet mFlyInAnim;
+	private FlyOutAnimation mFlyOutAnim;
+	private FlyInAnimation mFlyInAnim;
 
 	public CardView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		initViews(null);
+		initContentView(null);
 	}
 
 	public CardView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
-		initViews(null);
+		initContentView(null);
 	}
 
 	public CardView(Context context, ViewGroup parentView, CardFlyOutListener flyOutListener) {
 		super(context);
 
-		initViews(parentView);
-		initFlyOutAnimators();
-		initFlyInAnimators();
+		initContentView(parentView);
+		initFlyOutAnim();
+		initFlyInAnim();
+		initGestureDetector(flyOutListener);
+	}
+
+	private void initGestureDetector(CardFlyOutListener flyOutListener) {
 		mOnFlyOutListener = flyOutListener;
 		mGestureDetector = new GestureDetector(getContext(), new CardViewGestureListener());
+	}
+
+	private void initFlyInAnim() {
+		mFlyInAnim = new FlyInAnimation(this, DUR_FLY_IN);
+	}
+
+	private void initFlyOutAnim() {
+		FlyOutAnimListener flyOutAnimListener = new FlyOutAnimListener();
+		mFlyOutAnim = new FlyOutAnimation(this, flyOutAnimListener);
 	}
 
 	/**
@@ -150,14 +158,14 @@ public class CardView extends FrameLayout {
 		matrix.setRotate(getRotation());
 		matrix.mapPoints(velocity);
 	}
-
-	private void flyInParentCenter() {
-		mFlyInXAnim.setFloatValues(getX(), (mParentView.getWidth() - getWidth()) / 2);
-		mFlyInYAnim.setFloatValues(getY(), (mParentView.getHeight() - getHeight()) / 2);
+	
+	private void flyIn() {
+		mFlyInAnim.setValues(getX(), (mParentView.getWidth() - getWidth()) / 2, getY(),
+				(mParentView.getHeight() - getHeight()) / 2);
 		mFlyInAnim.start();
 	}
 
-	public void flyOutOfParent(float vX, float vY) {
+	private void flyOut(float vX, float vY) {
 		float parentW = mParentView.getWidth();
 		float parentH = mParentView.getHeight();
 
@@ -166,22 +174,17 @@ public class CardView extends FrameLayout {
 		if (vX > 0)
 			desX = parentW + longestDim / 2;
 		else
-			desX = - longestDim;
+			desX = -longestDim;
 		if (vY > 0)
 			desY = parentH + longestDim / 2;
 		else
-			desY = - longestDim;
+			desY = -longestDim;
 		Log.d("2359", String.format("sX=%f, sY=%f", desX, desY));
 
-		float durationX = Math.abs((desX - getX()) / vX) * 1000;
-		float durationY = Math.abs((desY - getY()) / vY) * 1000;
-
-		mFlyOutXAnim.setFloatValues(getX(), desX);
-		mFlyOutXAnim.setDuration((int) durationX);
-
-		mFlyOutYAnim.setFloatValues(getY(), desY);
-		mFlyOutYAnim.setDuration((int) durationY);
-
+		long durX = (long) (Math.abs((desX - getX()) / vX) * 1000);
+		long durY = (long) (Math.abs((desY - getY()) / vY) * 1000);
+		
+		mFlyOutAnim.setValues(getX(), desX, durX, getY(), desY, durY);
 		mFlyOutAnim.start();
 	}
 
@@ -194,7 +197,7 @@ public class CardView extends FrameLayout {
 		return (float) Math.sqrt(getWidth() * getWidth() + getHeight() * getHeight());
 	}
 
-	private void initViews(ViewGroup parentView) {
+	private void initContentView(ViewGroup parentView) {
 		mParentView = parentView;
 
 		LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -204,31 +207,6 @@ public class CardView extends FrameLayout {
 		mCardLabel = (TextView) findViewById(R.id.tv_card_label);
 
 		mCardBackground.setBackgroundResource(COLOR_ID_ARRAY[COLOR_INDEX = ++COLOR_INDEX % COLOR_ID_ARRAY.length]);
-	}
-
-	private void initFlyInAnimators() {
-		mFlyInXAnim = ObjectAnimator.ofFloat(this, "x", 0);
-		mFlyInYAnim = ObjectAnimator.ofFloat(this, "y", 0);
-		ObjectAnimator scaleUpX = ObjectAnimator.ofFloat(this, "scaleX", 0.25f, 1f);
-		ObjectAnimator scaleUpY = ObjectAnimator.ofFloat(this, "scaleY", 0.25f, 1f);
-
-		mFlyInAnim = new AnimatorSet();
-		mFlyInAnim.setInterpolator(new AccelerateDecelerateInterpolator());
-		mFlyInAnim.setDuration(DUR_FLY_IN);
-		mFlyInAnim.play(mFlyInXAnim).with(mFlyInYAnim).with(scaleUpX).with(scaleUpY);//.with(mRotateToBotAnim);
-	}
-
-	private void initFlyOutAnimators() {
-		FlyOutAnimListener flyOutAnimListener = new FlyOutAnimListener();
-		mFlyOutXAnim = ObjectAnimator.ofFloat(this, "x", 0);
-		mFlyOutXAnim.addListener(flyOutAnimListener);
-
-		mFlyOutYAnim = ObjectAnimator.ofFloat(this, "y", 0);
-		mFlyOutYAnim.addListener(flyOutAnimListener);
-
-		mFlyOutAnim = new AnimatorSet();
-		mFlyOutAnim.setInterpolator(new LinearInterpolator());
-		mFlyOutAnim.play(mFlyOutXAnim).with(mFlyOutYAnim);
 	}
 
 	@Override
