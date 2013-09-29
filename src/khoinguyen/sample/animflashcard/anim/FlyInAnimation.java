@@ -1,4 +1,4 @@
-package khoinguyen.sample.animflashcard;
+package khoinguyen.sample.animflashcard.anim;
 
 import android.animation.ObjectAnimator;
 import android.view.View;

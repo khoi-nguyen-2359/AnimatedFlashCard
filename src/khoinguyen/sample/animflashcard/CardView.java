@@ -1,5 +1,7 @@
 package khoinguyen.sample.animflashcard;
 
+import khoinguyen.sample.animflashcard.anim.FlyInAnimation;
+import khoinguyen.sample.animflashcard.anim.FlyOutAnimation;
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.content.Context;
