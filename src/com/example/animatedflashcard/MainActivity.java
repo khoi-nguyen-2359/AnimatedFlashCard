@@ -4,17 +4,20 @@ import java.util.ArrayList;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 
 public class MainActivity extends Activity implements CardView.CardFlyOutListener {
-	public static final int CARD_HEIGHT = 300;
-	public static final int CARD_WIDTH = 500;
 	public static final int MAX_CARD = 25;
 	public static final int NUM_CARD = 10;
 	public static final int SUM_DEGREE = 120;
@@ -23,13 +26,19 @@ public class MainActivity extends Activity implements CardView.CardFlyOutListene
 	public static final int DUR_FLY_IN = 700;
 
 	private ArrayList<CardView> mCardList;
-	private FrameLayout mContentView;
+	private ViewGroup mContentView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		initContentView();
+	}
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+
 		createCards(NUM_CARD);
 		animateIntro();
 	}
@@ -98,12 +107,23 @@ public class MainActivity extends Activity implements CardView.CardFlyOutListene
 		if (numCard > MAX_CARD)
 			numCard = MAX_CARD;
 
+		int cardWidth = mContentView.getWidth() / 3;
+		int cardHeight = mContentView.getHeight() / 3;
+		if (cardWidth < cardHeight) {
+			cardWidth = cardWidth ^ cardHeight;
+			cardHeight = cardWidth ^ cardHeight;
+			cardWidth = cardWidth ^ cardHeight;
+		}
+		float cardX = (mContentView.getWidth() - cardWidth) / 2;
+		float cardY = (mContentView.getHeight() - cardHeight) / 2;
+
 		mCardList = new ArrayList<CardView>();
 		for (int i = 0; i < numCard; ++i) {
 			CardView cv = new CardView(this, mContentView, this);
-			FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(CARD_WIDTH, CARD_HEIGHT);
-			lp.gravity = Gravity.CENTER;
+			ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(cardWidth, cardHeight);
 			cv.setLayoutParams(lp);
+			cv.setX(cardX);
+			cv.setY(cardY);
 			cv.setCardLabel("Flash card No. " + (numCard - i));
 			mContentView.addView(cv);
 			mCardList.add(cv);
@@ -111,8 +131,7 @@ public class MainActivity extends Activity implements CardView.CardFlyOutListene
 	}
 
 	private void initContentView() {
-		mContentView = new FrameLayout(this);
-		mContentView.setBackgroundColor(0xffffffff);
+		mContentView = (ViewGroup) getLayoutInflater().inflate(R.layout.activity_main, null);
 		setContentView(mContentView);
 	}
 
@@ -129,6 +148,7 @@ public class MainActivity extends Activity implements CardView.CardFlyOutListene
 	@Override
 	public void onCardFlyOutEnd(CardView flyCard) {
 		reorderZAxis();
+		animateShiftCard();
 	}
 
 	private void reorderZAxis() {
@@ -142,7 +162,6 @@ public class MainActivity extends Activity implements CardView.CardFlyOutListene
 	@Override
 	public void onCardFlyOutStart(CardView flyCard) {
 		reorderCardList(flyCard);
-		animateShiftCard();
 	}
 
 	private void reorderCardList(CardView flyCard) {

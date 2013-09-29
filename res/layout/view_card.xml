@@ -18,7 +18,7 @@
         android:layout_gravity="bottom"
         android:background="#66000000"
         android:padding="4dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@android:color/white" />
 
 </FrameLayout>
