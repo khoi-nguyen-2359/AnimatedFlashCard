@@ -2,9 +2,9 @@ package khoinguyen.sample.animflashcard.anim;
 
 import android.animation.AnimatorSet;
 
-public abstract class AnimationWrapper {
+public abstract class CustomAnimation {
 	protected AnimatorSet mAnimatorSet;
-	public AnimationWrapper() {
+	public CustomAnimation() {
 		mAnimatorSet = new AnimatorSet();
 	}
 	public AnimatorSet getAnimatorSet() {

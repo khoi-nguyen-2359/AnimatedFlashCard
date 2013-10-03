@@ -4,5 +4,7 @@
     <string name="app_name">AnimatedFlashCard</string>
     <string name="action_refresh">Refresh</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
