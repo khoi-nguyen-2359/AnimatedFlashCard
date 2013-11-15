@@ -156,6 +156,7 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        Log.d("2359", "onMeasure");
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         addAndMeasureAllItems();
         setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
@@ -163,6 +164,7 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        Log.d("2359", "onLayout");
         super.onLayout(changed, left, top, right, bottom);
         layoutAllItems();
     }
@@ -357,10 +359,10 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
      * Correct the z order of all items.
      */
     private void reorderZAxis() {
+        Log.d("2359", "reorderZAxis");
         for (int i = 0; i < mIndexList.size(); ++i)
             mItemList.get(mIndexList.get(i)).bringToFront();
 
-        requestLayout();
         invalidate();
     }
 
