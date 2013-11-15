@@ -6,6 +6,7 @@ import java.util.List;
 import khoinguyen.sample.animflashcard.adapter.StackAdapter;
 import khoinguyen.sample.animflashcard.anim.FlyInAnimation;
 import khoinguyen.sample.animflashcard.anim.FlyOutAnimation;
+import khoinguyen.sample.animflashcard.anim.TranslateAnimation;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -76,6 +77,8 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            Log.d("khoinguyen", "onFling");
+
             float[] velocity = { velocityX, velocityY };
             rotateVector(this.mItemIndex, velocity);
 
@@ -105,6 +108,14 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     // index list indicating current position of each child item. ex [3,1,2]
     // showing item 3 is currently at position 0, etc.
     private List<Integer> mIndexList;
+
+    /**
+     * Vars used for item dragging
+     */
+    private float mLastX;
+    private float mLastY;
+    private float mMoveX;
+    private float mMoveY;
 
     // Observer object for furthur implementation for
     // adapter.notifyDatasetChanged
@@ -147,13 +158,13 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
         mAdapter.notifyDataSetChanged();
     }
-    
+
     private void addAndMeasureAllItems() {
         if (mItemList != null && mItemList.size() != 0)
             for (View child : mItemList)
                 addAndMeasureItem(child);
     }
-    
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Log.d("2359", "onMeasure");
@@ -177,7 +188,7 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
             mItemList.add(newItem);
             mIndexList.add(i);
         }
-        
+
         initFlyInAnimList();
         initFlyOutAnimList();
         initItemGestureDetector();
@@ -190,10 +201,36 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
             mItemList.get(i).setOnTouchListener(new OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                        // Use values which were calculated before in the parent stack view
+                        TranslateAnimation transAnim = new TranslateAnimation(v, mMoveX, mMoveY);
+                        transAnim.start();
+                    }
+                    
                     return itemGestureDetector.onTouchEvent(event);
                 }
             });
         }
+    }
+
+    /**
+     * Save values of action move x/y. These values will be used to implement item dragging
+     * and used in onTouchEvent of the item.
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        int action = event.getAction();
+        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
+            if (action == MotionEvent.ACTION_MOVE) {
+                mMoveX = event.getX() - mLastX;
+                mMoveY = event.getY() - mLastY;
+            }
+
+            mLastX = event.getX();
+            mLastY = event.getY();
+        }
+
+        return super.dispatchTouchEvent(event);
     }
 
     private void initFlyInAnimList() {
