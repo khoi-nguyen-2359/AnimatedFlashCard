@@ -55,6 +55,7 @@ public class MainActivity extends Activity {
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_refresh: {
+		    mStackView.setAdapter(mCardAdapter);
 			mStackView.animateIntro();
 			break;
 		}
