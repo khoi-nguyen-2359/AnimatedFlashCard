@@ -6,28 +6,37 @@ import android.animation.ObjectAnimator;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
+/**
+ * Fly-out animation for StackView item.
+ * @author khoi2359
+ *
+ */
 public class FlyOutAnimation extends CustomAnimation {
 
+	/**
+	 * One animator listener is used for 2 animator (x and y) so flagging the state of whole animation
+	 */
 	public static int STATE_FLY_OUT_UNINIT = -1;
 	public static int STATE_FLY_OUT_START = 0;
 	public static int STATE_FLY_OUT_END = 1;
 	public static int STATE_FLY_OUT_CANCEL = 2;
 
 	public interface OnFlyOutListener {
+		/**
+		 * Should be called when the fly-out animation ends.
+		 * @param flyView the View which just ended the animation
+		 */
 		void onFlyOutEnd(View flyView);
 	}
 
 	private ObjectAnimator mFlyOutXAnim;
 	private ObjectAnimator mFlyOutYAnim;
-	private View mTarget;
-	private OnFlyOutListener mOnFlyOutListener;
+	
+	// state of whole animation
 	private int mAnimState = STATE_FLY_OUT_UNINIT;
-
-	public FlyOutAnimation(View view, OnFlyOutListener flyOutListener) {
+	
+	public FlyOutAnimation(final View view, final OnFlyOutListener flyOutListener) {
 		super();
-
-		mTarget = view;
-		mOnFlyOutListener = flyOutListener;
 
 		AnimatorListener animListener = new AnimatorListener() {
 			@Override
@@ -41,17 +50,15 @@ public class FlyOutAnimation extends CustomAnimation {
 
 			@Override
 			public void onAnimationEnd(Animator animation) {
-				if (mAnimState == STATE_FLY_OUT_END)
+				if (mAnimState == STATE_FLY_OUT_END
+						|| mAnimState == STATE_FLY_OUT_CANCEL)
 					return;
-				
-				mAnimatorSet.cancel();
-
-				if (mAnimState != STATE_FLY_OUT_CANCEL) {
-					if (mOnFlyOutListener != null)
-						mOnFlyOutListener.onFlyOutEnd(mTarget);
-				}
-				
 				mAnimState = STATE_FLY_OUT_END;
+
+				if (flyOutListener != null)
+					flyOutListener.onFlyOutEnd(view);
+
+				mAnimatorSet.cancel();
 			}
 
 			@Override

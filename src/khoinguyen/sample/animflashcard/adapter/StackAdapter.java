@@ -1,4 +1,4 @@
-package khoinguyen.sample.animflashcard;
+package khoinguyen.sample.animflashcard.adapter;
 
 import java.util.List;
 

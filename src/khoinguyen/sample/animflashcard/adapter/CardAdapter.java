@@ -1,14 +1,16 @@
-package khoinguyen.sample.animflashcard;
+package khoinguyen.sample.animflashcard.adapter;
 
 import java.util.List;
 
+import khoinguyen.sample.animflashcard.Card;
+import khoinguyen.sample.animflashcard.R;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class CardStackAdapter extends StackAdapter<Card> {
+public class CardAdapter extends StackAdapter<Card> {
 
 	static class ViewHolder {
 		TextView mCardTitle;
@@ -24,7 +26,7 @@ public class CardStackAdapter extends StackAdapter<Card> {
 	public static final int CARD_WIDTH = 500;
 	public static final int CARD_HEIGHT = 300;
 
-	public CardStackAdapter(Context context, int resViewId, List<Card> data) {
+	public CardAdapter(Context context, int resViewId, List<Card> data) {
 		super(context, resViewId, data);
 	}
 
