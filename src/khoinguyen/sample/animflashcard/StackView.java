@@ -57,6 +57,26 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
     // duration of intro animation
     public static final long DUR_INTRO_ANIM = 1000;
+    
+    class OnItemTouchListener implements OnTouchListener {
+        private GestureDetector mItemGestureDetector;
+        
+        public OnItemTouchListener(GestureDetector itemGestureDetector) {
+            mItemGestureDetector = itemGestureDetector;
+        }
+        
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                // Use values which were calculated before in the parent stack view
+                TranslateAnimation transAnim = new TranslateAnimation(v, mMoveX, mMoveY);
+                transAnim.start();
+            }
+            
+            return mItemGestureDetector.onTouchEvent(event);
+        }
+        
+    }
 
     /**
      * Gesture detector to handle fling guesture for each item in stack.
@@ -80,8 +100,8 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
             Log.d("khoinguyen", "onFling");
 
             float[] velocity = { velocityX, velocityY };
-            rotateVector(this.mItemIndex, velocity);
-
+//            rotateVector(this.mItemIndex, velocity);
+            Log.d("khoinguyen", "x,y="+velocity[0]+","+velocity[1]);
             flyOut(this.mItemIndex, velocity[0], velocity[1]);
             shiftItemList(mItemIndex);
 
@@ -197,19 +217,9 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     private void initItemGestureDetector() {
         int nItem = mItemList.size();
         for (int i = 0; i < nItem; ++i) {
-            final GestureDetector itemGestureDetector = new GestureDetector(getContext(), new OnItemGestureListener(i));
-            mItemList.get(i).setOnTouchListener(new OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                        // Use values which were calculated before in the parent stack view
-                        TranslateAnimation transAnim = new TranslateAnimation(v, mMoveX, mMoveY);
-                        transAnim.start();
-                    }
-                    
-                    return itemGestureDetector.onTouchEvent(event);
-                }
-            });
+            GestureDetector itemGestureDetector = new GestureDetector(getContext(), new OnItemGestureListener(i));
+            OnItemTouchListener itemTouchListener = new OnItemTouchListener(itemGestureDetector);            
+            mItemList.get(i).setOnTouchListener(itemTouchListener);
         }
     }
 
