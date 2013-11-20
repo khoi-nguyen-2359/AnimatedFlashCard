@@ -7,10 +7,13 @@ import khoinguyen.sample.animflashcard.adapter.StackAdapter;
 import khoinguyen.sample.animflashcard.anim.FlyInAnimation;
 import khoinguyen.sample.animflashcard.anim.FlyOutAnimation;
 import khoinguyen.sample.animflashcard.anim.TranslateAnimation;
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -46,9 +49,6 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     // sum rotate degree of all items
     public static final int SUM_DEGREE = 120;
 
-    // 12 degree rotation each item
-    public static final int MAX_ROTATE_OFFSET = 12;
-
     // duration of shift item animation
     public static final long DUR_SHIFT_ANIM = 300;
 
@@ -57,25 +57,26 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
     // duration of intro animation
     public static final long DUR_INTRO_ANIM = 1000;
-    
+
     class OnItemTouchListener implements OnTouchListener {
         private GestureDetector mItemGestureDetector;
-        
-        public OnItemTouchListener(GestureDetector itemGestureDetector) {
+        private int mItemIndex;
+        public OnItemTouchListener(int itemIndex, GestureDetector itemGestureDetector) {
             mItemGestureDetector = itemGestureDetector;
+            mItemIndex = itemIndex;
         }
-        
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                // Use values which were calculated before in the parent stack view
-                TranslateAnimation transAnim = new TranslateAnimation(v, mMoveX, mMoveY);
-                transAnim.start();
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//                View item = mItemList.get(mItemIndex);
+//                item.setPivotX(item.getWidth()/2);
+//                item.setPivotY(item.getHeight()/2);
+//                item.setRotation(0)
             }
-            
             return mItemGestureDetector.onTouchEvent(event);
         }
-        
+
     }
 
     /**
@@ -86,6 +87,9 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     class OnItemGestureListener extends GestureDetector.SimpleOnGestureListener {
         private int mItemIndex;
 
+        private float mLastScrollX = -1;
+        private float mLastScrollY = -1;
+        
         /**
          * @param itemIndex
          *            index position of the item which this listener is
@@ -98,24 +102,82 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             Log.d("khoinguyen", "onFling");
-
-            float[] velocity = { velocityX, velocityY };
-//            rotateVector(this.mItemIndex, velocity);
-            Log.d("khoinguyen", "x,y="+velocity[0]+","+velocity[1]);
+            
+            float[] velocity = { velocityX, velocityY};
+            rotateVector(this.mItemIndex, velocity);
             flyOut(this.mItemIndex, velocity[0], velocity[1]);
             shiftItemList(mItemIndex);
+
+            mLastScrollX = mLastScrollY = -1;
+
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            Log.d("khoinguyen", "onScroll");
+            /* Calculate distance X and Y in screen's coordinate */
+            if (mLastScrollX == -1 || mLastScrollY == -1) {
+                mLastScrollX = e1.getRawX();
+                mLastScrollY = e1.getRawY();
+            }
+            
+            float diffX = e2.getRawX() - mLastScrollX;
+            float diffY = e2.getRawY() - mLastScrollY;
+            
+            View item = mItemList.get(mItemIndex);
+            item.setX(item.getX() + diffX);
+            item.setY(item.getY() + diffY);
+
+            mLastScrollX = e2.getRawX();
+            mLastScrollY = e2.getRawY();
 
             return true;
         }
 
         @Override
         public boolean onDown(MotionEvent e) {
+            Log.d("khoinguyen", "onDown");
+            final View item = mItemList.get(mItemIndex);
+            
+            float dx = item.getWidth() / 2 - e.getX();
+            float dy = item.getHeight() / 2 - e.getY();
+            float angle = (float) Math.toDegrees(Math.abs(Math.atan(dx/dy)));
+            if (dy < 0)
+                angle = 180 - angle;
+            if (dx < 0)
+                angle = -angle;
+            
+            Rect oldRect, newRect;
+            oldRect = new Rect();
+            newRect = new Rect();
+            item.getGlobalVisibleRect(oldRect);
+            Log.d("khoinguyen", "x,y="+oldRect.left+","+oldRect.top);
+            /* change pivot point for rotating */
+            item.setPivotX(e.getX());
+            item.setPivotY(e.getY());
+            item.getGlobalVisibleRect(newRect);
+            Log.d("khoinguyen", "x,y="+newRect.left+","+newRect.top);
+            
+            /**
+             * After change pivot point, rotating is re-apply with the new one. This may make position changes on the view.
+             * Below do a translation to bring the view back to its position as it is with the old pivot point.
+             * */
+            item.setX(item.getX() + oldRect.left - newRect.left);
+            item.setY(item.getY() + oldRect.top - newRect.top);
+            ObjectAnimator oa = ObjectAnimator.ofFloat(item, "rotation", angle);
+            oa.setDuration(300);
+            oa.setInterpolator(new AccelerateDecelerateInterpolator());
+            oa.start();
             return true;
         }
     };
 
     private StackAdapter mAdapter;
 
+    // Rotation offset between cards
+    public int mRotateOffset;
+    
     // store child view items of stack
     private List<View> mItemList;
 
@@ -128,14 +190,6 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     // index list indicating current position of each child item. ex [3,1,2]
     // showing item 3 is currently at position 0, etc.
     private List<Integer> mIndexList;
-
-    /**
-     * Vars used for item dragging
-     */
-    private float mLastX;
-    private float mLastY;
-    private float mMoveX;
-    private float mMoveY;
 
     // Observer object for furthur implementation for
     // adapter.notifyDatasetChanged
@@ -201,9 +255,11 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
     }
 
     private void initItemList() {
+        int nItem = mAdapter.getCount();
+        mRotateOffset = SUM_DEGREE / nItem;
         mItemList = new ArrayList<View>();
         mIndexList = new ArrayList<Integer>();
-        for (int i = 0; i < mAdapter.getCount(); ++i) {
+        for (int i = 0; i < nItem; ++i) {
             View newItem = mAdapter.getView(i, null, this);
             mItemList.add(newItem);
             mIndexList.add(i);
@@ -218,29 +274,9 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
         int nItem = mItemList.size();
         for (int i = 0; i < nItem; ++i) {
             GestureDetector itemGestureDetector = new GestureDetector(getContext(), new OnItemGestureListener(i));
-            OnItemTouchListener itemTouchListener = new OnItemTouchListener(itemGestureDetector);            
+            OnItemTouchListener itemTouchListener = new OnItemTouchListener(i, itemGestureDetector);
             mItemList.get(i).setOnTouchListener(itemTouchListener);
         }
-    }
-
-    /**
-     * Save values of action move x/y. These values will be used to implement item dragging
-     * and used in onTouchEvent of the item.
-     */
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_MOVE) {
-            if (action == MotionEvent.ACTION_MOVE) {
-                mMoveX = event.getX() - mLastX;
-                mMoveY = event.getY() - mLastY;
-            }
-
-            mLastX = event.getX();
-            mLastY = event.getY();
-        }
-
-        return super.dispatchTouchEvent(event);
     }
 
     private void initFlyInAnimList() {
@@ -380,7 +416,7 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
      */
     private float getOffsetRatote(int nItem) {
         float offsetRotate = SUM_DEGREE / nItem;
-        return offsetRotate < MAX_ROTATE_OFFSET ? offsetRotate : MAX_ROTATE_OFFSET;
+        return offsetRotate < mRotateOffset ? offsetRotate : mRotateOffset;
     }
 
     /**
