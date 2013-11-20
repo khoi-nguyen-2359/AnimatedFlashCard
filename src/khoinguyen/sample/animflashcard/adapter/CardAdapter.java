@@ -5,6 +5,8 @@ import java.util.List;
 import khoinguyen.sample.animflashcard.Card;
 import khoinguyen.sample.animflashcard.R;
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +15,6 @@ import android.widget.TextView;
 public class CardAdapter extends StackAdapter<Card> {
 
 	static class ViewHolder {
-		TextView mCardTitle;
 		TextView mCardContent;
 	}
 	
@@ -36,12 +37,12 @@ public class CardAdapter extends StackAdapter<Card> {
 		if (convertView == null) {
 			LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = inflater.inflate(mResViewId, null);
-			convertView.setBackgroundResource(COLOR_ID_ARRAY[COLOR_INDEX = ++COLOR_INDEX % COLOR_ID_ARRAY.length]);
+			GradientDrawable shapeBg = (GradientDrawable) convertView.getBackground();
+			shapeBg.setColor(mContext.getResources().getColor(COLOR_ID_ARRAY[COLOR_INDEX = ++COLOR_INDEX % COLOR_ID_ARRAY.length]));
 			ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(CARD_WIDTH, CARD_HEIGHT);
 			convertView.setLayoutParams(lp);
 			
 			viewHolder = new ViewHolder();
-			viewHolder.mCardTitle = (TextView) convertView.findViewById(R.id.tv_card_title);
 			viewHolder.mCardContent = (TextView) convertView.findViewById(R.id.tv_card_content);
 			
 			convertView.setTag(viewHolder);
@@ -49,7 +50,6 @@ public class CardAdapter extends StackAdapter<Card> {
 		
 		Card data = getItem(position);
 		viewHolder = (ViewHolder) convertView.getTag();
-		viewHolder.mCardTitle.setText(data.getTitle());
 		viewHolder.mCardContent.setText(data.getContent());
 		
 		return convertView;
