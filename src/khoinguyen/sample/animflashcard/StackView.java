@@ -12,7 +12,9 @@ import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -89,7 +91,7 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
 
         private float mLastScrollX = -1;
         private float mLastScrollY = -1;
-        
+
         /**
          * @param itemIndex
          *            index position of the item which this listener is
@@ -148,27 +150,27 @@ public class StackView extends AdapterView<StackAdapter> implements FlyOutAnimat
             if (dx < 0)
                 angle = -angle;
             
-            Rect oldRect, newRect;
-            oldRect = new Rect();
-            newRect = new Rect();
-            item.getGlobalVisibleRect(oldRect);
-            Log.d("khoinguyen", "x,y="+oldRect.left+","+oldRect.top);
+            int[] oldLoc = new int[2];
+            item.getLocationInWindow(oldLoc);
+            Log.d("khoinguyen", "x,y="+oldLoc[0]+","+oldLoc[1]);
             /* change pivot point for rotating */
             item.setPivotX(e.getX());
             item.setPivotY(e.getY());
-            item.getGlobalVisibleRect(newRect);
-            Log.d("khoinguyen", "x,y="+newRect.left+","+newRect.top);
             
+            int[] newLoc = new int[2];
+            item.getLocationInWindow(newLoc);
+            Log.d("khoinguyen", "x,y="+newLoc[0]+","+newLoc[1]);
             /**
-             * After change pivot point, rotating is re-apply with the new one. This may make position changes on the view.
+             * After change pivot point, rotating is re-apply with the new pivot point. This may make position changes on the view.
              * Below do a translation to bring the view back to its position as it is with the old pivot point.
              * */
-            item.setX(item.getX() + oldRect.left - newRect.left);
-            item.setY(item.getY() + oldRect.top - newRect.top);
+            item.setX(item.getX() + oldLoc[0] - newLoc[0]);
+            item.setY(item.getY() + oldLoc[1] - newLoc[1]);
             ObjectAnimator oa = ObjectAnimator.ofFloat(item, "rotation", angle);
             oa.setDuration(300);
             oa.setInterpolator(new AccelerateDecelerateInterpolator());
             oa.start();
+            
             return true;
         }
     };

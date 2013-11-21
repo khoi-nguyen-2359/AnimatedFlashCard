@@ -38,9 +38,6 @@ public class MainActivity extends Activity {
 		cardList.add(new Card("Title 5", "Content 5"));
 		cardList.add(new Card("Title 6", "Content 6"));
 		cardList.add(new Card("Title 7", "Content 7"));
-		cardList.add(new Card("Title 8", "Content 8"));
-		cardList.add(new Card("Title 9", "Content 9"));
-		cardList.add(new Card("Title 10", "Content 10"));
 
 		return cardList;
 	}
